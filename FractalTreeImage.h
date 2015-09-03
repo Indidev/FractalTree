@@ -11,13 +11,15 @@
 #include <QPen>
 #include <QColor>
 #include <QPaintEngine>
+#include <time.h>
 
 using namespace std;
 
 class FractalTreeImage : public QImage
 {
 public:
-    explicit FractalTreeImage(int width = 100, int height = 100, int numBranches = 2, int recursionDepth = 1, int rootWidth = 4);
+    explicit FractalTreeImage(int width = 100, int height = 100, int numBranches = 2, int recursionDepth = 1, int rootWidth = 4, unsigned int seed = 0);
+    unsigned int getSeed();
 
 protected:
     struct Endpoint {
@@ -28,6 +30,7 @@ protected:
     double branches;
     int maxDepth;
     int rootWidth;
+    unsigned int seed;
 
     void drawTree();
 
@@ -35,6 +38,7 @@ protected:
     void drawLeaf(Endpoint point, QColor color, int length, QPainter &painter);
     QPoint add(QPoint p, QVector2D v);
     QVector2D rotate(QVector2D vec, double angle);
+
 
 };
 

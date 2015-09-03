@@ -8,6 +8,10 @@ FractalTree::FractalTree(QWidget *parent) :
     ui->setupUi(this);
     if (!ui->centralWidget->layout())
         ui->centralWidget->setLayout(new QGridLayout);
+
+
+    ui->seedEdit->setValidator(new LongValidator);
+
     render();
 
     connect(ui->renderButton, SIGNAL(clicked()), this, SLOT(render()));
@@ -22,7 +26,9 @@ FractalTree::~FractalTree()
 void FractalTree::render() {
 
     QLabel *label = ui->treeLabel;
-    curTree = new FractalTreeImage(ui->widthBox->value(), ui->heightBox->value(), ui->branchesBox->value(), ui->depthBox->value(), ui->rootBox->value());
+    curTree = new FractalTreeImage(ui->widthBox->value(), ui->heightBox->value(),
+                                   ui->branchesBox->value(), ui->depthBox->value(),
+                                   ui->rootBox->value(), (unsigned int) ui->seedEdit->text().toLong());
 
     //set label background
     QImage background(500, 500, QImage::Format_ARGB32);
@@ -40,11 +46,12 @@ void FractalTree::render() {
     p.fillRect(0, 0, 500, 500, Qt::white);
     p.drawImage(background.rect(), resized.copy(rect));
     label->setPixmap(QPixmap::fromImage(background));
+
+    ui->curSeedEdit->setText(QString::number(curTree->getSeed()));
 }
 
 void FractalTree::save() {
     QString filename = QFileDialog::getSaveFileName(this, "save tree", "", "png (*.png);; xpm(*.xpm);; jpg(*.jpg)");
-    cout << filename.toStdString() << endl;
     if (filename.endsWith("png"))
         curTree->save(filename, "png", Qt::CaseInsensitive);
     else if (filename.endsWith("jpg", Qt::CaseInsensitive) || filename.endsWith("xpm", Qt::CaseInsensitive)) {

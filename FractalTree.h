@@ -6,11 +6,10 @@
 #include <QLabel>
 #include <QRect>
 #include <QFileDialog>
+#include <limits>
+#include <QValidator>
+
 #include "FractalTreeImage.h"
-
-#include "iostream"
-
-using namespace std;
 
 namespace Ui {
 class FractalTree;
@@ -29,7 +28,18 @@ public slots:
     void save();
 private:
     Ui::FractalTree *ui;
-    QImage *curTree;
+    FractalTreeImage *curTree;
+
+    //private class
+    class LongValidator : public QValidator {
+        QValidator::State validate(QString &str, int &) const {
+            bool ok;
+            long value = str.toLong(&ok);
+            if (ok)
+                ok = value <= UINT_MAX;
+            return ok || str.isEmpty()?State::Acceptable:State::Invalid;
+        }
+    };
 };
 
 #endif // FRACTALTREE_H

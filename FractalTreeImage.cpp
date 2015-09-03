@@ -2,9 +2,14 @@
 
 #define PI 3.14159265359
 
-FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int recursionDepth, int rootWidth) :
+FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int recursionDepth, int rootWidth, unsigned int seed) :
     QImage(width, height, QImage::Format_ARGB32)
 {
+    if (seed == 0)
+        seed = time(NULL);
+    srand(seed);
+    srand48(seed);
+    this->seed = seed;
     branches = numBranches;
     maxDepth = recursionDepth;
     this->rootWidth = rootWidth;
@@ -68,7 +73,7 @@ void FractalTreeImage::drawTree()
 
     //draw leafs
     for (Endpoint p : endpoints) {
-        drawLeaf(p, QColor(0, 198, 0, 200), baseLength / maxDepth, painter);
+        drawLeaf(p, QColor(0, 198, 0, 200), baseLength / (2 * maxDepth), painter);
     }
 }
 
@@ -113,5 +118,10 @@ QVector2D FractalTreeImage::rotate(QVector2D vec, double angle) {
     float y = vec.x() * sin(a) + vec.y() * cos(a);
 
     return QVector2D(x, y);
+}
+
+unsigned int FractalTreeImage::getSeed()
+{
+    return seed;
 }
 
