@@ -1,7 +1,7 @@
 # FractalTree
 Create and save your own fractal tree:
 
-![HeadCooker](http://indidude.de/stuff/fractalTree.jpg)
+![FractalTree](http://indidude.de/stuff/fractalTree.png)
 
 ### Compilation ###
 
