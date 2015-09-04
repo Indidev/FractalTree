@@ -19,6 +19,10 @@ FractalTree::FractalTree(QWidget *parent) :
     connect(ui->renderButton, SIGNAL(clicked()), this, SLOT(render()));
     connect(ui->saveButton, SIGNAL(clicked()), this, SLOT(save()));
     connect(ui->leafSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(changeLeafSize()));
+
+    //TODO: add scheduled task (10 times per second) to check leaf slider (improving redrawing)
+
+    this->setWindowIcon(QIcon("icon.png"));
 }
 
 FractalTree::~FractalTree()
@@ -32,7 +36,7 @@ void FractalTree::render() {
 
     curTree = new FractalTreeImage(ui->widthBox->value(), ui->heightBox->value(),
                                    ui->branchesBox->value(), ui->depthBox->value(),
-                                   ui->rootBox->value(), (float)ui->leafSizeSlider->value() / 1000.0,
+                                   ui->rootBox->value(), leafSize(),
                                    (unsigned int) ui->seedEdit->text().toLong());
 
     drawTree();
@@ -41,35 +45,32 @@ void FractalTree::render() {
 }
 
 void FractalTree::drawTree() {
-    //set label background
-    QImage background(500, 500, QImage::Format_ARGB32);
 
-    //resize and crop for label
+    //resize
     QImage resized;
     if (curTree->width() > curTree->height())
         resized = curTree->scaledToHeight(500);
     else
-        resized = curTree->scaledToWidth(500);
+        resized = curTree->scaledToWidth(600);
+    //crop rectangle
+    QRect rect(resized.width() / 2 - 300, resized.height() / 2 - 250, 600, 500);
 
-    QRect rect(resized.width() / 2 - 250, resized.height() / 2 - 250, 500, 500);
-
-    //paint background and tree onto image
-    QPainter p;
-    p.begin(&background);
-    p.fillRect(0, 0, 500, 500, Qt::white);
-    p.drawImage(background.rect(), resized.copy(rect));
-    p.end();
-
-    ui->preview->setPixmap(QPixmap::fromImage(background));
+    //crop and set
+    ui->preview->setPixmap(QPixmap::fromImage(resized.copy(rect)));
 }
 
 void FractalTree::changeLeafSize() {
+    delete curTree;
     curTree = new FractalTreeImage(ui->widthBox->value(), ui->heightBox->value(),
                                    ui->branchesBox->value(), ui->depthBox->value(),
-                                   ui->rootBox->value(), (float)ui->leafSizeSlider->value() / 1000.0,
+                                   ui->rootBox->value(), leafSize(),
                                    (unsigned int) ui->curSeedEdit->text().toLong());
 
     drawTree();
+}
+
+float FractalTree::leafSize() {
+    return (float)ui->leafSizeSlider->value() / 100.0;
 }
 
 void FractalTree::save() {

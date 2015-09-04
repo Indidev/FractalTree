@@ -46,6 +46,7 @@ private:
 signals:
 protected:
     void drawTree();
+    float leafSize();
 };
 
 #endif // FRACTALTREE_H

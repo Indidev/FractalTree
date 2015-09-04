@@ -6,7 +6,7 @@ FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int r
     QImage(width, height, QImage::Format_ARGB32)
 {
     if (seed == 0)
-        this->seed = time(NULL);
+        this->seed = time(NULL) * (unsigned int)rand();
     else
         this->seed = seed;
     branches = numBranches;
@@ -129,9 +129,3 @@ unsigned int FractalTreeImage::getSeed()
 {
     return seed;
 }
-
-void FractalTreeImage::setLeafSize(float leafSize)
-{
-    drawTree(leafSize);
-}
-
