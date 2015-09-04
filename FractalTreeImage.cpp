@@ -2,24 +2,26 @@
 
 #define PI 3.14159265359
 
-FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int recursionDepth, int rootWidth, unsigned int seed) :
+FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int recursionDepth, int rootWidth, float leafSize, unsigned int seed) :
     QImage(width, height, QImage::Format_ARGB32)
 {
     if (seed == 0)
-        seed = time(NULL);
-    srand(seed);
-    srand48(seed);
-    this->seed = seed;
+        this->seed = time(NULL);
+    else
+        this->seed = seed;
     branches = numBranches;
     maxDepth = recursionDepth;
     this->rootWidth = rootWidth;
 
-    drawTree();
+    drawTree(leafSize);
 }
 
-void FractalTreeImage::drawTree()
+void FractalTreeImage::drawTree(float leafSize)
 {
-    QPainter painter(this);
+    srand(seed);
+    srand48(seed);
+    QPainter painter;
+    painter.begin(this);
     painter.setRenderHint(QPainter::HighQualityAntialiasing);
     int width = this->width();
     int height = this->height();
@@ -27,9 +29,11 @@ void FractalTreeImage::drawTree()
     double delta = 180.0 / (2 * branches);
     QList<Endpoint> endpoints;
 
-    //Draw background
+    //remove background
+    painter.setCompositionMode(QPainter::CompositionMode_Clear);
     painter.fillRect(rect(), Qt::transparent);
-//    painter.fillRect(rect(), Qt::white);
+
+    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 
     //Draw base line
     QPoint start(width / 2, height - (height / 10));
@@ -73,8 +77,9 @@ void FractalTreeImage::drawTree()
 
     //draw leafs
     for (Endpoint p : endpoints) {
-        drawLeaf(p, QColor(0, 198, 0, 200), baseLength / (2 * maxDepth), painter);
+        drawLeaf(p, QColor(0, 198, 0, 200), baseLength * leafSize, painter);
     }
+    painter.end();
 }
 
 void FractalTreeImage::drawLine(QPoint start, QPoint end, QPainter &painter, float thickness, QColor color) {
@@ -123,5 +128,10 @@ QVector2D FractalTreeImage::rotate(QVector2D vec, double angle) {
 unsigned int FractalTreeImage::getSeed()
 {
     return seed;
+}
+
+void FractalTreeImage::setLeafSize(float leafSize)
+{
+    drawTree(leafSize);
 }
 

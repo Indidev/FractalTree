@@ -18,8 +18,9 @@ using namespace std;
 class FractalTreeImage : public QImage
 {
 public:
-    explicit FractalTreeImage(int width = 100, int height = 100, int numBranches = 2, int recursionDepth = 1, int rootWidth = 4, unsigned int seed = 0);
+    explicit FractalTreeImage(int width = 100, int height = 100, int numBranches = 2, int recursionDepth = 1, int rootWidth = 4, float leafSize = 0.1, unsigned int seed = 0);
     unsigned int getSeed();
+    void setLeafSize(float leafSize);
 
 protected:
     struct Endpoint {
@@ -32,7 +33,7 @@ protected:
     int rootWidth;
     unsigned int seed;
 
-    void drawTree();
+    void drawTree(float leafSize);
 
     void drawLine(QPoint start, QPoint end, QPainter &painter, float thickness = 1, QColor color = Qt::black);
     void drawLeaf(Endpoint point, QColor color, int length, QPainter &painter);

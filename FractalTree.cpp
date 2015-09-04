@@ -12,10 +12,13 @@ FractalTree::FractalTree(QWidget *parent) :
 
     ui->seedEdit->setValidator(new LongValidator);
 
+    curTree = 0;
+
     render();
 
     connect(ui->renderButton, SIGNAL(clicked()), this, SLOT(render()));
     connect(ui->saveButton, SIGNAL(clicked()), this, SLOT(save()));
+    connect(ui->leafSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(changeLeafSize()));
 }
 
 FractalTree::~FractalTree()
@@ -25,11 +28,19 @@ FractalTree::~FractalTree()
 
 void FractalTree::render() {
 
-    QLabel *label = ui->treeLabel;
+    delete curTree;
+
     curTree = new FractalTreeImage(ui->widthBox->value(), ui->heightBox->value(),
                                    ui->branchesBox->value(), ui->depthBox->value(),
-                                   ui->rootBox->value(), (unsigned int) ui->seedEdit->text().toLong());
+                                   ui->rootBox->value(), (float)ui->leafSizeSlider->value() / 1000.0,
+                                   (unsigned int) ui->seedEdit->text().toLong());
 
+    drawTree();
+
+    ui->curSeedEdit->setText(QString::number(curTree->getSeed()));
+}
+
+void FractalTree::drawTree() {
     //set label background
     QImage background(500, 500, QImage::Format_ARGB32);
 
@@ -42,12 +53,23 @@ void FractalTree::render() {
 
     QRect rect(resized.width() / 2 - 250, resized.height() / 2 - 250, 500, 500);
 
-    QPainter p(&background);
+    //paint background and tree onto image
+    QPainter p;
+    p.begin(&background);
     p.fillRect(0, 0, 500, 500, Qt::white);
     p.drawImage(background.rect(), resized.copy(rect));
-    label->setPixmap(QPixmap::fromImage(background));
+    p.end();
 
-    ui->curSeedEdit->setText(QString::number(curTree->getSeed()));
+    ui->preview->setPixmap(QPixmap::fromImage(background));
+}
+
+void FractalTree::changeLeafSize() {
+    curTree = new FractalTreeImage(ui->widthBox->value(), ui->heightBox->value(),
+                                   ui->branchesBox->value(), ui->depthBox->value(),
+                                   ui->rootBox->value(), (float)ui->leafSizeSlider->value() / 1000.0,
+                                   (unsigned int) ui->curSeedEdit->text().toLong());
+
+    drawTree();
 }
 
 void FractalTree::save() {

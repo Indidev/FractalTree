@@ -11,6 +11,8 @@
 
 #include "FractalTreeImage.h"
 
+#include <unistd.h>
+
 namespace Ui {
 class FractalTree;
 }
@@ -26,6 +28,7 @@ public:
 public slots:
     void render();
     void save();
+    void changeLeafSize();
 private:
     Ui::FractalTree *ui;
     FractalTreeImage *curTree;
@@ -40,6 +43,9 @@ private:
             return ok || str.isEmpty()?State::Acceptable:State::Invalid;
         }
     };
+signals:
+protected:
+    void drawTree();
 };
 
 #endif // FRACTALTREE_H
