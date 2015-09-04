@@ -8,10 +8,9 @@
 #include <QFileDialog>
 #include <limits>
 #include <QValidator>
+#include <QTimer>
 
 #include "FractalTreeImage.h"
-
-#include <unistd.h>
 
 namespace Ui {
 class FractalTree;
@@ -32,6 +31,8 @@ public slots:
 private:
     Ui::FractalTree *ui;
     FractalTreeImage *curTree;
+    QTimer *timer;
+    int leafSize;
 
     //private class
     class LongValidator : public QValidator {
@@ -46,7 +47,6 @@ private:
 signals:
 protected:
     void drawTree();
-    float leafSize();
 };
 
 #endif // FRACTALTREE_H

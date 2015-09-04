@@ -6,6 +6,7 @@ FractalTree::FractalTree(QWidget *parent) :
     ui(new Ui::FractalTree)
 {
     ui->setupUi(this);
+    timer = new QTimer(this);
     if (!ui->centralWidget->layout())
         ui->centralWidget->setLayout(new QGridLayout);
 
@@ -13,20 +14,24 @@ FractalTree::FractalTree(QWidget *parent) :
     ui->seedEdit->setValidator(new LongValidator);
 
     curTree = 0;
+    leafSize = ui->leafSizeSlider->value();
 
     render();
 
     connect(ui->renderButton, SIGNAL(clicked()), this, SLOT(render()));
     connect(ui->saveButton, SIGNAL(clicked()), this, SLOT(save()));
-    connect(ui->leafSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(changeLeafSize()));
+    //connect(ui->leafSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(changeLeafSize()));
+    connect(timer, SIGNAL(timeout()), this, SLOT(changeLeafSize()));
 
-    //TODO: add scheduled task (10 times per second) to check leaf slider (improving redrawing)
+    //this->setWindowIcon(QIcon("icon.png"));
 
-    this->setWindowIcon(QIcon("icon.png"));
+    timer->start(100);
 }
 
 FractalTree::~FractalTree()
 {
+    delete timer;
+    delete curTree;
     delete ui;
 }
 
@@ -36,7 +41,7 @@ void FractalTree::render() {
 
     curTree = new FractalTreeImage(ui->widthBox->value(), ui->heightBox->value(),
                                    ui->branchesBox->value(), ui->depthBox->value(),
-                                   ui->rootBox->value(), leafSize(),
+                                   ui->rootBox->value(), (float) leafSize / 100.f,
                                    (unsigned int) ui->seedEdit->text().toLong());
 
     drawTree();
@@ -60,17 +65,16 @@ void FractalTree::drawTree() {
 }
 
 void FractalTree::changeLeafSize() {
-    delete curTree;
-    curTree = new FractalTreeImage(ui->widthBox->value(), ui->heightBox->value(),
-                                   ui->branchesBox->value(), ui->depthBox->value(),
-                                   ui->rootBox->value(), leafSize(),
-                                   (unsigned int) ui->curSeedEdit->text().toLong());
+    if (leafSize != ui->leafSizeSlider->value()) {
+        leafSize = ui->leafSizeSlider->value();
+        delete curTree;
+        curTree = new FractalTreeImage(ui->widthBox->value(), ui->heightBox->value(),
+                                       ui->branchesBox->value(), ui->depthBox->value(),
+                                       ui->rootBox->value(), (float) leafSize / 100.f,
+                                       (unsigned int) ui->curSeedEdit->text().toLong());
 
-    drawTree();
-}
-
-float FractalTree::leafSize() {
-    return (float)ui->leafSizeSlider->value() / 100.0;
+        drawTree();
+    }
 }
 
 void FractalTree::save() {
