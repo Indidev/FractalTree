@@ -10,6 +10,8 @@ FractalTree::FractalTree(QWidget *parent) :
     if (!ui->centralWidget->layout())
         ui->centralWidget->setLayout(new QGridLayout);
 
+    setWindowIcon(QIcon("ico.png"));
+
 
     ui->seedEdit->setValidator(new SeedValidator);
 
@@ -150,7 +152,7 @@ bool FractalTree::checkHashList(QStringList list) {
     }
     for (int i = 0; i < 7; i++) {
         bool ok;
-        list[i].toLong(&ok);
+        list[i].toLongLong(&ok);
         if (!ok) {
             cout << "Hashvalue: " << list[i].toStdString() << " is not valid." << endl;
             return false;
@@ -159,7 +161,7 @@ bool FractalTree::checkHashList(QStringList list) {
 
     for (int i = 7; i < list.size(); i++) {
         bool ok;
-        ("0x" + list[i]).toLong(&ok, 16);
+        ("0x" + list[i]).toLongLong(&ok, 16);
         if (!ok) {
             cout << "Hashvalue: " << list[i].toStdString() << " is not valid." << endl;
             return false;

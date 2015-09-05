@@ -82,7 +82,7 @@ void FractalTreeImage::drawTree()
 
             for (int i = 0; i < branches; i++) {
 
-                double gitter = drand48() * delta - delta / 2.0; //use rand between +- delta/4
+                double gitter = drand() * delta - delta / 2.0; //use rand between +- delta/4
                 QPoint start = endpoint.point;
                 QVector2D direction = rotate(endpoint.vec, angle + gitter);
                 QPoint end = add(start, length * direction);
@@ -153,4 +153,8 @@ QVector2D FractalTreeImage::rotate(QVector2D vec, double angle) {
 unsigned int FractalTreeImage::getSeed()
 {
     return seed;
+}
+
+double FractalTreeImage::drand() {
+    return (double) rand() / (double) RAND_MAX;
 }

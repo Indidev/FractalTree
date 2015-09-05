@@ -47,6 +47,7 @@ protected:
     QVector2D rotate(QVector2D vec, double angle);
 
 
+    double drand();
 };
 
 #endif // FRACTALTREEPIXMAP_H
