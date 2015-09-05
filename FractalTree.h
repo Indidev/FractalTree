@@ -73,7 +73,7 @@ protected:
     //private class
     class SeedValidator : public QValidator {
         QValidator::State validate(QString &str, int &) const {
-            if (str.isEmpty() || str.startsWith("#"))
+            if (str.trimmed().isEmpty() || str.trimmed().startsWith("#"))
                 return State::Acceptable;
             bool ok;
             long value = str.toLong(&ok);

@@ -87,7 +87,7 @@ FractalTree::~FractalTree()
 
 void FractalTree::render() {
 
-    QString seed = ui->seedEdit->text();
+    QString seed = ui->seedEdit->text().trimmed();
 
     if (seed.startsWith("#")) {
         QStringList seedParts = seed.remove(0, 1).split(":");
