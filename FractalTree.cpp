@@ -14,18 +14,59 @@ FractalTree::FractalTree(QWidget *parent) :
     ui->seedEdit->setValidator(new LongValidator);
 
     curTree = 0;
-    leafSize = ui->leafSizeSlider->value();
+    widthBox = new SpinBox;
+    widthBox->setMinimum(10);
+    widthBox->setMaximum(100000);
+    widthBox->setValue(1920);
+    ui->optionsForm->setWidget(2, QFormLayout::FieldRole, widthBox);
 
-    render();
+    heightBox = new SpinBox;
+    heightBox->setMinimum(10);
+    heightBox->setMaximum(100000);
+    heightBox->setValue(1080);
+    ui->optionsForm->setWidget(3, QFormLayout::FieldRole, heightBox);
+
+    branchesBox = new SpinBox;
+    branchesBox->setMinimum(0);
+    branchesBox->setMaximum(100);
+    branchesBox->setValue(2);
+    ui->optionsForm->setWidget(4, QFormLayout::FieldRole, branchesBox);
+
+    depthBox = new SpinBox;
+    depthBox->setMinimum(0);
+    depthBox->setMaximum(100);
+    depthBox->setValue(10);
+    ui->optionsForm->setWidget(5, QFormLayout::FieldRole, depthBox);
+
+    rootBox = new SpinBox;
+    rootBox->setMinimum(1);
+    rootBox->setMaximum(10000);
+    rootBox->setValue(10);
+    ui->optionsForm->setWidget(6, QFormLayout::FieldRole, rootBox);
 
     connect(ui->renderButton, SIGNAL(clicked()), this, SLOT(render()));
-    connect(ui->saveButton, SIGNAL(clicked()), this, SLOT(save()));
-    //connect(ui->leafSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(changeLeafSize()));
-    connect(timer, SIGNAL(timeout()), this, SLOT(changeLeafSize()));
 
-    //this->setWindowIcon(QIcon("icon.png"));
+    connect(widthBox, SIGNAL(newValue()), this, SLOT(changedValue()));
+    connect(heightBox, SIGNAL(newValue()), this, SLOT(changedValue()));
+    connect(branchesBox, SIGNAL(newValue()), this, SLOT(changedValue()));
+    connect(depthBox, SIGNAL(newValue()), this, SLOT(changedValue()));
+    connect(rootBox, SIGNAL(newValue()), this, SLOT(changedValue()));
+
+    connect(ui->leafSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(changedValue()));
+
+    connect(ui->leafColor, SIGNAL(clicked()), this, SLOT(clickedLeafColor()));
+    connect(ui->treeColor, SIGNAL(clicked()), this, SLOT(clickedTreeColor()));
+
+    connect(timer, SIGNAL(timeout()), this, SLOT(updateTree()));
+
+    treeColor = Qt::black;
+    leafColor = QColor(0, 198, 0, 200);
+
+    updateStyleSheet();
+    changedTree = false;
 
     timer->start(100);
+    render();
 }
 
 FractalTree::~FractalTree()
@@ -39,10 +80,11 @@ void FractalTree::render() {
 
     delete curTree;
 
-    curTree = new FractalTreeImage(ui->widthBox->value(), ui->heightBox->value(),
-                                   ui->branchesBox->value(), ui->depthBox->value(),
-                                   ui->rootBox->value(), (float) leafSize / 100.f,
-                                   (unsigned int) ui->seedEdit->text().toLong());
+    curTree = new FractalTreeImage(widthBox->value(), heightBox->value(),
+                                   branchesBox->value(), depthBox->value(),
+                                   rootBox->value(), (float) ui->leafSizeSlider->value() / 100.f,
+                                   (unsigned int) ui->seedEdit->text().toLong(),
+                                   treeColor, leafColor);
 
     drawTree();
 
@@ -64,14 +106,19 @@ void FractalTree::drawTree() {
     ui->preview->setPixmap(QPixmap::fromImage(resized.copy(rect)));
 }
 
-void FractalTree::changeLeafSize() {
-    if (leafSize != ui->leafSizeSlider->value()) {
-        leafSize = ui->leafSizeSlider->value();
+void FractalTree::changedValue() {
+    changedTree = true;
+}
+
+void FractalTree::updateTree() {
+    if (changedTree) {
+        changedTree = false;
         delete curTree;
-        curTree = new FractalTreeImage(ui->widthBox->value(), ui->heightBox->value(),
-                                       ui->branchesBox->value(), ui->depthBox->value(),
-                                       ui->rootBox->value(), (float) leafSize / 100.f,
-                                       (unsigned int) ui->curSeedEdit->text().toLong());
+        curTree = new FractalTreeImage(widthBox->value(), heightBox->value(),
+                                       branchesBox->value(), depthBox->value(),
+                                       rootBox->value(), (float) ui->leafSizeSlider->value() / 100.f,
+                                       (unsigned int) ui->curSeedEdit->text().toLong(),
+                                       treeColor, leafColor);
 
         drawTree();
     }
@@ -88,4 +135,36 @@ void FractalTree::save() {
         painter.drawImage(withBg.rect(), *curTree);
         withBg.save(filename);
     }
+}
+
+void FractalTree::clickedLeafColor() {
+    changeColor(leafColor);
+    updateStyleSheet();
+    changedTree = true;
+}
+
+void FractalTree::clickedTreeColor() {
+    changeColor(treeColor);
+    updateStyleSheet();
+    changedTree = true;
+}
+
+void FractalTree::changeColor(QColor &curColor) {
+    QColorDialog dialog;
+
+    curColor = dialog.getColor(curColor, this, "Choose a Color", QColorDialog::ShowAlphaChannel);
+}
+
+void FractalTree::updateStyleSheet() {
+    ui->leafColor->setStyleSheet("border: none;background-color: " + colorToRGBA(leafColor) + ";");
+    ui->treeColor->setStyleSheet("border: none;background-color: " + colorToRGBA(treeColor) + ";");
+}
+
+QString FractalTree::colorToRGBA(const QColor &color) {
+    QString style = "rgba( ";
+    style += QString::number(color.red()) + ", ";
+    style += QString::number(color.green()) + ", ";
+    style += QString::number(color.blue()) + ", ";
+    style += QString::number(color.alpha()) + ")";
+    return style;
 }

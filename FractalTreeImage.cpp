@@ -2,21 +2,26 @@
 
 #define PI 3.14159265359
 
-FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int recursionDepth, int rootWidth, float leafSize, unsigned int seed) :
+FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int recursionDepth, int rootWidth, float leafSize, unsigned int seed, QColor treeColor, QColor leafColor) :
     QImage(width, height, QImage::Format_ARGB32)
 {
     if (seed == 0)
         this->seed = time(NULL) * (unsigned int)rand();
     else
         this->seed = seed;
+
     branches = numBranches;
     maxDepth = recursionDepth;
     this->rootWidth = rootWidth;
 
-    drawTree(leafSize);
+    this->treeColor = treeColor;
+    this->leafColors.append(leafColor);
+    this->leafSize = leafSize;
+
+    drawTree();
 }
 
-void FractalTreeImage::drawTree(float leafSize)
+void FractalTreeImage::drawTree()
 {
     srand(seed);
     srand48(seed);
@@ -77,13 +82,13 @@ void FractalTreeImage::drawTree(float leafSize)
 
     //draw leafs
     for (Endpoint p : endpoints) {
-        drawLeaf(p, QColor(0, 198, 0, 200), baseLength * leafSize, painter);
+        drawLeaf(p, baseLength * leafSize, painter);
     }
     painter.end();
 }
 
-void FractalTreeImage::drawLine(QPoint start, QPoint end, QPainter &painter, float thickness, QColor color) {
-    QPen pen(color, thickness, Qt::DotLine, Qt::RoundCap, Qt::RoundJoin);
+void FractalTreeImage::drawLine(QPoint start, QPoint end, QPainter &painter, float thickness) {
+    QPen pen(treeColor, thickness, Qt::DotLine, Qt::RoundCap, Qt::RoundJoin);
 
     painter.setPen(pen);
 
@@ -96,8 +101,10 @@ void FractalTreeImage::drawLine(QPoint start, QPoint end, QPainter &painter, flo
     painter.drawPath(path);
 }
 
-void FractalTreeImage::drawLeaf(Endpoint point, QColor color, int length, QPainter &painter) {
+void FractalTreeImage::drawLeaf(Endpoint point, int length, QPainter &painter) {
     double width = length * 0.6;
+
+    QColor color = leafColors[rand() % leafColors.size()];
 
     QVector2D vec = rotate(point.vec, rand() % 40 - 20);
     QPoint start = point.point;
