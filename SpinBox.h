@@ -4,9 +4,6 @@
 #include <QSpinBox>
 #include <QWheelEvent>
 
-#include <iostream>
-using namespace std;
-
 class SpinBox : public QSpinBox
 {
     Q_OBJECT

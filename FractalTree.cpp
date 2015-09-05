@@ -44,6 +44,9 @@ FractalTree::FractalTree(QWidget *parent) :
     rootBox->setValue(10);
     ui->optionsForm->setWidget(6, QFormLayout::FieldRole, rootBox);
 
+    colorDialog.setOption(QColorDialog::ShowAlphaChannel);
+    //colorDialog.setParent(this);
+
     connect(ui->renderButton, SIGNAL(clicked()), this, SLOT(render()));
 
     connect(widthBox, SIGNAL(newValue()), this, SLOT(changedValue()));
@@ -150,9 +153,25 @@ void FractalTree::clickedTreeColor() {
 }
 
 void FractalTree::changeColor(QColor &curColor) {
-    QColorDialog dialog;
+    QTimer colorTimer;
+    colorPtr = &curColor;
+    QColor oldC = curColor;
 
-    curColor = dialog.getColor(curColor, this, "Choose a Color", QColorDialog::ShowAlphaChannel);
+    colorDialog.setCurrentColor(oldC);
+
+    connect(&colorTimer, SIGNAL(timeout()), this, SLOT(updateColor()));
+
+    //timer for live preview of color
+    colorTimer.start(100);
+
+    if (colorDialog.exec()) {
+        colorTimer.stop();
+        curColor = colorDialog.currentColor();
+    } else {
+        colorTimer.stop();
+        curColor = oldC;
+    }
+
 }
 
 void FractalTree::updateStyleSheet() {
@@ -167,4 +186,9 @@ QString FractalTree::colorToRGBA(const QColor &color) {
     style += QString::number(color.blue()) + ", ";
     style += QString::number(color.alpha()) + ")";
     return style;
+}
+
+void FractalTree::updateColor() {
+    *colorPtr = colorDialog.currentColor();
+    changedTree = true;
 }

@@ -35,6 +35,7 @@ public slots:
     void clickedTreeColor();
 
     void changedValue();
+    void updateColor();
 signals:
 protected:
     Ui::FractalTree *ui;
@@ -46,6 +47,9 @@ protected:
     SpinBox *branchesBox;
     SpinBox *depthBox;
     SpinBox *rootBox;
+    QColor *colorPtr;
+
+    QColorDialog colorDialog;
 
     //private class
     class LongValidator : public QValidator {
