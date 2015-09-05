@@ -48,6 +48,7 @@ FractalTree::FractalTree(QWidget *parent) :
     //colorDialog.setParent(this);
 
     connect(ui->renderButton, SIGNAL(clicked()), this, SLOT(render()));
+    connect(ui->saveButton, SIGNAL(clicked()), this, SLOT(save()));
 
     connect(widthBox, SIGNAL(newValue()), this, SLOT(changedValue()));
     connect(heightBox, SIGNAL(newValue()), this, SLOT(changedValue()));
