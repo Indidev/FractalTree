@@ -14,10 +14,15 @@
 #include <QSignalMapper>
 #include <QMenu>
 #include <QCursor>
+#include <QErrorMessage>
 
 #include "FractalTreeImage.h"
 #include "SpinBox.h"
 #include "ExtendedButton.h"
+
+#include <iostream>
+
+using namespace std;
 
 namespace Ui {
 class FractalTree;
@@ -66,22 +71,26 @@ protected:
     QSignalMapper leafColorRCMapper;
 
     //private class
-    class LongValidator : public QValidator {
+    class SeedValidator : public QValidator {
         QValidator::State validate(QString &str, int &) const {
+            if (str.isEmpty() || str.startsWith("#"))
+                return State::Acceptable;
             bool ok;
             long value = str.toLong(&ok);
             if (ok)
                 ok = value <= UINT_MAX;
-            return ok || str.isEmpty()?State::Acceptable:State::Invalid;
+            return ok?State::Acceptable:State::Invalid;
         }
     };
     void drawTree();
     QString colorToRGBA(const QColor &color = QColor(0, 198, 0, 200));
     void updateStyleSheet();
     void changeColor(QColor &curColor);
-    void addLeafColorButton(QColor color = QColor(0, 198, 0, 200));
+    void addLeafColor(QColor color = QColor(0, 198, 0, 200));
     void addAddColorButton();
-    void deleteColorButton(int index);
+    void deleteLeafColor(int index);
+    bool checkHashList(QStringList list);
+    QColor getColorFromHash(QString hash);
 };
 
 #endif // FRACTALTREE_H

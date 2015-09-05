@@ -11,7 +11,7 @@ FractalTree::FractalTree(QWidget *parent) :
         ui->centralWidget->setLayout(new QGridLayout);
 
 
-    ui->seedEdit->setValidator(new LongValidator);
+    ui->seedEdit->setValidator(new SeedValidator);
 
     curTree = 0;
     widthBox = new SpinBox;
@@ -47,6 +47,7 @@ FractalTree::FractalTree(QWidget *parent) :
     colorDialog.setOption(QColorDialog::ShowAlphaChannel);
     //colorDialog.setParent(this);
 
+    connect(ui->seedEdit, SIGNAL(returnPressed()), this, SLOT(render()));
     connect(ui->renderButton, SIGNAL(clicked()), this, SLOT(render()));
     connect(ui->saveButton, SIGNAL(clicked()), this, SLOT(save()));
 
@@ -67,7 +68,7 @@ FractalTree::FractalTree(QWidget *parent) :
     connect(&leafColorRCMapper, SIGNAL(mapped(int)), this, SLOT(rightClickedColor(int)));
 
     treeColor = Qt::black;
-    addLeafColorButton();
+    addLeafColor();
     addAddColorButton();
 
     updateStyleSheet();
@@ -86,17 +87,91 @@ FractalTree::~FractalTree()
 
 void FractalTree::render() {
 
-    delete curTree;
+    QString seed = ui->seedEdit->text();
 
-    curTree = new FractalTreeImage(widthBox->value(), heightBox->value(),
-                                   branchesBox->value(), depthBox->value(),
-                                   rootBox->value(), (float) ui->leafSizeSlider->value() / 100.f,
-                                   (unsigned int) ui->seedEdit->text().toLong(),
-                                   treeColor, leafColors);
+    if (seed.startsWith("#")) {
+        QStringList seedParts = seed.remove(0, 1).split(":");
+        if (checkHashList(seedParts)) {
+            widthBox->setValue(seedParts[1].toInt());
+            heightBox->setValue(seedParts[2].toInt());
+            branchesBox->setValue(seedParts[3].toInt());
+            depthBox->setValue(seedParts[4].toInt());
+            rootBox->setValue(seedParts[5].toInt());
+            ui->leafSizeSlider->setValue(seedParts[6].toInt());
 
-    drawTree();
+            treeColor = getColorFromHash(seedParts[7]);
 
-    ui->curSeedEdit->setText(QString::number(curTree->getSeed()));
+            ui->leafColorLayout->removeWidget(addColorButton);
+            addColorButton->deleteLater();
+
+            leafColors.clear();
+            for (QPushButton *button : leafColorButtons) {
+                ui->leafColorLayout->removeWidget(button);
+                button->deleteLater();
+            }
+            leafColorButtons.clear();
+
+            for (int i = 8; i < seedParts.size(); i++) {
+                addLeafColor(getColorFromHash(seedParts[i]));
+            }
+            addAddColorButton();
+
+            updateStyleSheet();
+
+            delete curTree;
+
+            curTree = new FractalTreeImage(widthBox->value(), heightBox->value(),
+                                           branchesBox->value(), depthBox->value(),
+                                           rootBox->value(), (float) ui->leafSizeSlider->value() / 100.f,
+                                           (unsigned int) seedParts[0].toLong(),
+                                           treeColor, leafColors);
+            drawTree();
+        } else {
+            QErrorMessage em;
+            em.showMessage("Hash is not valid");
+            em.exec();
+        }
+    } else {
+        delete curTree;
+        curTree = new FractalTreeImage(widthBox->value(), heightBox->value(),
+                                       branchesBox->value(), depthBox->value(),
+                                       rootBox->value(), (float) ui->leafSizeSlider->value() / 100.f,
+                                       (unsigned int) ui->seedEdit->text().toLong(),
+                                       treeColor, leafColors);
+        drawTree();
+    }
+}
+
+bool FractalTree::checkHashList(QStringList list) {
+
+    if (list.size() < 9) {
+        cout << "Hash is to short! " << endl;
+        return false;
+    }
+    for (int i = 0; i < 7; i++) {
+        bool ok;
+        list[i].toLong(&ok);
+        if (!ok) {
+            cout << "Hashvalue: " << list[i].toStdString() << " is not valid." << endl;
+            return false;
+        }
+    }
+
+    for (int i = 7; i < list.size(); i++) {
+        bool ok;
+        ("0x" + list[i]).toLong(&ok, 16);
+        if (!ok) {
+            cout << "Hashvalue: " << list[i].toStdString() << " is not valid." << endl;
+            return false;
+        }
+    }
+    return true;
+}
+
+QColor FractalTree::getColorFromHash(QString hash) {
+    QColor c("#" + hash.left(6));
+    c.setAlpha(hash.right(2).toInt(0, 16));
+    return c;
 }
 
 void FractalTree::drawTree() {
@@ -112,6 +187,25 @@ void FractalTree::drawTree() {
 
     //crop and set
     ui->preview->setPixmap(QPixmap::fromImage(resized.copy(rect)));
+
+    //update seed
+    ui->curSeedEdit->setText(QString::number(curTree->getSeed()));
+
+    //update hash
+    QString hash = "#" + QString::number(curTree->getSeed());
+    hash += ":" + QString::number(widthBox->value());
+    hash += ":" + QString::number(heightBox->value());
+    hash += ":" + QString::number(branchesBox->value());
+    hash += ":" + QString::number(depthBox->value());
+    hash += ":" + QString::number(rootBox->value());
+    hash += ":" + QString::number(ui->leafSizeSlider->value());
+    hash += ":" + treeColor.name().remove(0, 1) + QString::number(treeColor.alpha(), 16);
+
+    for (QColor color : leafColors) {
+        hash += ":" + color.name().remove(0, 1) + QString::number(color.alpha(), 16);
+    }
+
+    ui->curHashEdit->setText(hash);
 }
 
 void FractalTree::changedValue() {
@@ -199,7 +293,7 @@ void FractalTree::updateColor() {
     changedTree = true;
 }
 
-void FractalTree::addLeafColorButton(QColor color) {
+void FractalTree::addLeafColor(QColor color) {
     ExtendedButton *button = new ExtendedButton;
     button->setMinimumHeight(25);
     button->setMaximumHeight(25);
@@ -238,11 +332,11 @@ void FractalTree::rightClickedColor(int index) {
 
     QAction* action = menu.exec(QCursor::pos());
     if (action && action->toolTip() == "delete") {
-        deleteColorButton(index);
+        deleteLeafColor(index);
     }
 }
 
-void FractalTree::deleteColorButton(int index) {
+void FractalTree::deleteLeafColor(int index) {
     leafColors.removeAt(index);
     leafColorButtons[index]->deleteLater();
     leafColorButtons.removeAt(index);
@@ -252,7 +346,7 @@ void FractalTree::deleteColorButton(int index) {
 void FractalTree::pushedAddColorButton() {
     ui->leafColorLayout->removeWidget(addColorButton);
     addColorButton->deleteLater();
-    addLeafColorButton();
+    addLeafColor();
     addAddColorButton();
     updateStyleSheet();
     clickedLeafColor(leafColors.size() - 1);
