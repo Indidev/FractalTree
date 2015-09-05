@@ -42,7 +42,6 @@ FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int r
 void FractalTreeImage::drawTree()
 {
     srand(seed);
-    srand48(seed);
     QPainter painter;
     painter.begin(this);
     painter.setRenderHint(QPainter::HighQualityAntialiasing);
