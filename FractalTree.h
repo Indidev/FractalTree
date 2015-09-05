@@ -47,6 +47,7 @@ public slots:
     void updateColor();
     void pushedAddColorButton();
     void rightClickedColor(int index);
+    void changedFilter(QObject *dialog);
 signals:
 protected:
     Ui::FractalTree *ui;

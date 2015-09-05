@@ -229,16 +229,45 @@ void FractalTree::updateTree() {
 }
 
 void FractalTree::save() {
-    QString filename = QFileDialog::getSaveFileName(this, "save tree", "", "png (*.png);; xpm(*.xpm);; jpg(*.jpg)");
-    if (filename.endsWith("png"))
-        curTree->save(filename, "png", Qt::CaseInsensitive);
-    else if (filename.endsWith("jpg", Qt::CaseInsensitive) || filename.endsWith("xpm", Qt::CaseInsensitive)) {
-        QImage withBg(curTree->width(), curTree->height(), QImage::Format_RGB32);
-        withBg.fill(Qt::white);
-        QPainter painter(&withBg);
-        painter.drawImage(withBg.rect(), *curTree);
-        withBg.save(filename);
+    QSignalMapper sm;
+    connect(&sm, SIGNAL(mapped(QObject*)), this, SLOT(changedFilter(QObject*)));
+
+    QFileDialog fd;
+    sm.setMapping(&fd, &fd);
+    QObject::connect(&fd, SIGNAL(filterSelected(QString)), &sm, SLOT(map()));
+
+    fd.setWindowTitle("Export tree");
+    fd.setNameFilter("png (*.png);; xpm(*.xpm);; jpg(*.jpg);; bmp(*.bmp);; ico(*.ico)");
+    fd.setAcceptMode(QFileDialog::AcceptSave);
+    if (fd.exec()) {
+        QString filename = fd.selectedFiles().first();
+        QString extension = filename.split(".").last();
+
+        if (!extension.toLower().contains("png|ico|gif|jpg|bmp|xpm")) {
+            extension = fd.selectedNameFilter().split(QRegExp("\\("),QString::SkipEmptyParts).first();
+            filename += "." + extension;
+        }
+
+        cout << extension.toStdString() << endl;
+        if (extension.toLower().contains(QRegExp("png|ico|gif")))
+            curTree->save(filename);
+        else if (filename.toLower().contains(QRegExp("jpg|bmp|xpm"))) {
+            QImage withBg(curTree->width(), curTree->height(), QImage::Format_RGB32);
+            withBg.fill(Qt::white);
+            QPainter painter(&withBg);
+            painter.drawImage(withBg.rect(), *curTree);
+            withBg.save(filename);
+        } else {
+            //should do something graphical here...
+            cerr << "Extenstion " << extension.toStdString() << " not supported." << endl;
+        }
     }
+}
+
+void FractalTree::changedFilter(QObject *dialog) {
+    QFileDialog *d = (QFileDialog *) dialog;
+    d->setDefaultSuffix(d->selectedNameFilter());
+    cout << "default suffix: " << d->defaultSuffix().toStdString() << endl;
 }
 
 void FractalTree::clickedLeafColor(int index) {
