@@ -12,9 +12,12 @@
 #include <QColorDialog>
 #include <QSpinBox>
 #include <QSignalMapper>
+#include <QMenu>
+#include <QCursor>
 
 #include "FractalTreeImage.h"
 #include "SpinBox.h"
+#include "ExtendedButton.h"
 
 namespace Ui {
 class FractalTree;
@@ -38,6 +41,7 @@ public slots:
     void changedValue();
     void updateColor();
     void pushedAddColorButton();
+    void rightClickedColor(int index);
 signals:
 protected:
     Ui::FractalTree *ui;
@@ -58,7 +62,8 @@ protected:
     QColor treeColor;
     QList<QColor> leafColors;
     QList<QPushButton *> leafColorButtons;
-    QSignalMapper leafColorMapper;
+    QSignalMapper leafColorLCMapper;
+    QSignalMapper leafColorRCMapper;
 
     //private class
     class LongValidator : public QValidator {
@@ -76,6 +81,7 @@ protected:
     void changeColor(QColor &curColor);
     void addLeafColorButton(QColor color = QColor(0, 198, 0, 200));
     void addAddColorButton();
+    void deleteColorButton(int index);
 };
 
 #endif // FRACTALTREE_H

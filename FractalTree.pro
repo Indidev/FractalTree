@@ -16,10 +16,12 @@ QMAKE_CXXFLAGS += -std=c++11
 SOURCES += main.cpp\
         FractalTree.cpp \
     FractalTreeImage.cpp \
-    SpinBox.cpp
+    SpinBox.cpp \
+    ExtendedButton.cpp
 
 HEADERS  += FractalTree.h \
     FractalTreeImage.h \
-    SpinBox.h
+    SpinBox.h \
+    ExtendedButton.h
 
 FORMS    += FractalTree.ui

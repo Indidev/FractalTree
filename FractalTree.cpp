@@ -62,7 +62,8 @@ FractalTree::FractalTree(QWidget *parent) :
 
     connect(timer, SIGNAL(timeout()), this, SLOT(updateTree()));
 
-    connect(&leafColorMapper, SIGNAL(mapped(int)), this, SLOT(clickedLeafColor(int)));
+    connect(&leafColorLCMapper, SIGNAL(mapped(int)), this, SLOT(clickedLeafColor(int)));
+    connect(&leafColorRCMapper, SIGNAL(mapped(int)), this, SLOT(rightClickedColor(int)));
 
     treeColor = Qt::black;
     addLeafColorButton();
@@ -198,14 +199,17 @@ void FractalTree::updateColor() {
 }
 
 void FractalTree::addLeafColorButton(QColor color) {
-    QPushButton *button = new QPushButton;
+    ExtendedButton *button = new ExtendedButton;
     button->setMinimumHeight(25);
     button->setMaximumHeight(25);
     button->setMinimumWidth(25);
     button->setMaximumWidth(25);
 
-    leafColorMapper.setMapping(button, leafColors.size());
-    connect(button, SIGNAL(clicked()), &leafColorMapper, SLOT(map()));
+    leafColorLCMapper.setMapping(button, leafColors.size());
+    connect(button, SIGNAL(leftClicked()), &leafColorLCMapper, SLOT(map()));
+
+    leafColorRCMapper.setMapping(button, leafColors.size());
+    connect(button, SIGNAL(rightClicked()), &leafColorRCMapper, SLOT(map()));
 
     leafColorButtons.push_back(button);
     leafColors.push_back(color);
@@ -226,11 +230,30 @@ void FractalTree::addAddColorButton() {
     connect(addColorButton, SIGNAL(clicked()), this, SLOT(pushedAddColorButton()));
 }
 
+void FractalTree::rightClickedColor(int index) {
+    QMenu menu;
+
+    menu.addAction("delete");
+
+    QAction* action = menu.exec(QCursor::pos());
+    if (action && action->toolTip() == "delete") {
+        deleteColorButton(index);
+    }
+}
+
+void FractalTree::deleteColorButton(int index) {
+    leafColors.removeAt(index);
+    leafColorButtons[index]->deleteLater();
+    leafColorButtons.removeAt(index);
+    changedTree = true;
+}
+
 void FractalTree::pushedAddColorButton() {
     ui->leafColorLayout->removeWidget(addColorButton);
     addColorButton->deleteLater();
     addLeafColorButton();
     addAddColorButton();
     updateStyleSheet();
+    clickedLeafColor(leafColors.size() - 1);
     changedTree = true;
 }
