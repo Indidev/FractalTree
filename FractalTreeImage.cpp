@@ -17,6 +17,24 @@ FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int r
     this->treeColor = treeColor;
     this->leafColors.append(leafColor);
     this->leafSize = leafSize;
+    drawTree();
+}
+
+FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int recursionDepth, int rootWidth, float leafSize, unsigned int seed, QColor treeColor, QList<QColor> leafColors) :
+    QImage(width, height, QImage::Format_ARGB32)
+{
+    if (seed == 0)
+        this->seed = time(NULL) * (unsigned int)rand();
+    else
+        this->seed = seed;
+
+    branches = numBranches;
+    maxDepth = recursionDepth;
+    this->rootWidth = rootWidth;
+
+    this->treeColor = treeColor;
+    this->leafColors.append(leafColors);
+    this->leafSize = leafSize;
 
     drawTree();
 }
@@ -104,7 +122,7 @@ void FractalTreeImage::drawLine(QPoint start, QPoint end, QPainter &painter, flo
 void FractalTreeImage::drawLeaf(Endpoint point, int length, QPainter &painter) {
     double width = length * 0.6;
 
-    QColor color = leafColors[rand() % leafColors.size()];
+    QColor color = leafColors.size() > 0? leafColors[rand() % leafColors.size()] : QColor(0, 198, 0, 200);
 
     QVector2D vec = rotate(point.vec, rand() % 40 - 20);
     QPoint start = point.point;

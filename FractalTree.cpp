@@ -57,13 +57,16 @@ FractalTree::FractalTree(QWidget *parent) :
 
     connect(ui->leafSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(changedValue()));
 
-    connect(ui->leafColor, SIGNAL(clicked()), this, SLOT(clickedLeafColor()));
+    //connect(ui->leafColor, SIGNAL(clicked()), this, SLOT(clickedLeafColor()));
     connect(ui->treeColor, SIGNAL(clicked()), this, SLOT(clickedTreeColor()));
 
     connect(timer, SIGNAL(timeout()), this, SLOT(updateTree()));
 
+    connect(&leafColorMapper, SIGNAL(mapped(int)), this, SLOT(clickedLeafColor(int)));
+
     treeColor = Qt::black;
-    leafColor = QColor(0, 198, 0, 200);
+    addLeafColorButton();
+    addAddColorButton();
 
     updateStyleSheet();
     changedTree = false;
@@ -87,7 +90,7 @@ void FractalTree::render() {
                                    branchesBox->value(), depthBox->value(),
                                    rootBox->value(), (float) ui->leafSizeSlider->value() / 100.f,
                                    (unsigned int) ui->seedEdit->text().toLong(),
-                                   treeColor, leafColor);
+                                   treeColor, leafColors);
 
     drawTree();
 
@@ -121,7 +124,7 @@ void FractalTree::updateTree() {
                                        branchesBox->value(), depthBox->value(),
                                        rootBox->value(), (float) ui->leafSizeSlider->value() / 100.f,
                                        (unsigned int) ui->curSeedEdit->text().toLong(),
-                                       treeColor, leafColor);
+                                       treeColor, leafColors);
 
         drawTree();
     }
@@ -140,8 +143,8 @@ void FractalTree::save() {
     }
 }
 
-void FractalTree::clickedLeafColor() {
-    changeColor(leafColor);
+void FractalTree::clickedLeafColor(int index) {
+    changeColor(leafColors[index]);
     updateStyleSheet();
     changedTree = true;
 }
@@ -175,7 +178,8 @@ void FractalTree::changeColor(QColor &curColor) {
 }
 
 void FractalTree::updateStyleSheet() {
-    ui->leafColor->setStyleSheet("border: none;background-color: " + colorToRGBA(leafColor) + ";");
+    for (int i = 0; i < leafColorButtons.size(); i++)
+        leafColorButtons[i]->setStyleSheet("border: none;background-color: " + colorToRGBA(leafColors[i]) + ";");
     ui->treeColor->setStyleSheet("border: none;background-color: " + colorToRGBA(treeColor) + ";");
 }
 
@@ -190,5 +194,43 @@ QString FractalTree::colorToRGBA(const QColor &color) {
 
 void FractalTree::updateColor() {
     *colorPtr = colorDialog.currentColor();
+    changedTree = true;
+}
+
+void FractalTree::addLeafColorButton(QColor color) {
+    QPushButton *button = new QPushButton;
+    button->setMinimumHeight(25);
+    button->setMaximumHeight(25);
+    button->setMinimumWidth(25);
+    button->setMaximumWidth(25);
+
+    leafColorMapper.setMapping(button, leafColors.size());
+    connect(button, SIGNAL(clicked()), &leafColorMapper, SLOT(map()));
+
+    leafColorButtons.push_back(button);
+    leafColors.push_back(color);
+
+    ui->leafColorLayout->addWidget(button);
+}
+
+void FractalTree::addAddColorButton() {
+    addColorButton = new QPushButton("+");
+    addColorButton->setMinimumHeight(25);
+    addColorButton->setMaximumHeight(25);
+    addColorButton->setMinimumWidth(25);
+    addColorButton->setMaximumWidth(25);
+    addColorButton->setStyleSheet("font-weight: bold;border:none; background-color: rgba(0, 0, 0, 30);");
+
+    ui->leafColorLayout->addWidget(addColorButton);
+
+    connect(addColorButton, SIGNAL(clicked()), this, SLOT(pushedAddColorButton()));
+}
+
+void FractalTree::pushedAddColorButton() {
+    ui->leafColorLayout->removeWidget(addColorButton);
+    addColorButton->deleteLater();
+    addLeafColorButton();
+    addAddColorButton();
+    updateStyleSheet();
     changedTree = true;
 }

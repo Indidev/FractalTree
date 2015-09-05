@@ -11,6 +11,7 @@
 #include <QTimer>
 #include <QColorDialog>
 #include <QSpinBox>
+#include <QSignalMapper>
 
 #include "FractalTreeImage.h"
 #include "SpinBox.h"
@@ -31,25 +32,33 @@ public slots:
     void render();
     void save();
     void updateTree();
-    void clickedLeafColor();
+    void clickedLeafColor(int index);
     void clickedTreeColor();
 
     void changedValue();
     void updateColor();
+    void pushedAddColorButton();
 signals:
 protected:
     Ui::FractalTree *ui;
     FractalTreeImage *curTree;
     QTimer *timer;
-    bool changedTree;
     SpinBox *widthBox;
     SpinBox *heightBox;
     SpinBox *branchesBox;
     SpinBox *depthBox;
     SpinBox *rootBox;
     QColor *colorPtr;
+    QPushButton *addColorButton;
+
+    bool changedTree;
 
     QColorDialog colorDialog;
+
+    QColor treeColor;
+    QList<QColor> leafColors;
+    QList<QPushButton *> leafColorButtons;
+    QSignalMapper leafColorMapper;
 
     //private class
     class LongValidator : public QValidator {
@@ -61,13 +70,12 @@ protected:
             return ok || str.isEmpty()?State::Acceptable:State::Invalid;
         }
     };
-
-    QColor treeColor;
-    QColor leafColor;
     void drawTree();
-    QString colorToRGBA(const QColor &color);
+    QString colorToRGBA(const QColor &color = QColor(0, 198, 0, 200));
     void updateStyleSheet();
     void changeColor(QColor &curColor);
+    void addLeafColorButton(QColor color = QColor(0, 198, 0, 200));
+    void addAddColorButton();
 };
 
 #endif // FRACTALTREE_H
