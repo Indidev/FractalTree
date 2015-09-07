@@ -202,19 +202,29 @@ QColor FractalTree::getColorFromHash(QString hash) {
     return c;
 }
 
-void FractalTree::drawTree() {
+void FractalTree::drawTree  () {
 
+    int w = ui->preview->width() - 10;
+    int h = ui->preview->height() - 10;
     //resize
     QImage resized;
-    if (curTree->width() > curTree->height())
-        resized = curTree->scaledToHeight(500);
+    if (((float)curTree->width() / (float)curTree->height()) < ((float)w / (float)h))
+        resized = curTree->scaledToHeight(h);
     else
-        resized = curTree->scaledToWidth(600);
-    //crop rectangle
-    QRect rect(resized.width() / 2 - 300, resized.height() / 2 - 250, 600, 500);
+        resized = curTree->scaledToWidth(w);
 
-    //crop and set
-    ui->preview->setPixmap(QPixmap::fromImage(resized.copy(rect)));
+    //paint a light frame
+    QPainter painter(&resized);
+    QPainterPath framePath;
+    framePath.addRect(0, 0, resized.width() - 1, resized.height() - 1);
+    painter.setPen(QPen(QColor(0, 0, 0, 40), 1));
+    painter.drawPath(framePath);
+
+    int left = resized.width() / 2 - w / 2;
+    int top = resized.height() / 2 - h / 2;
+
+    //crop and set image
+    ui->preview->setPixmap(QPixmap::fromImage(resized.copy(left, top,  w, h)));
 
     //update seed
     curSeedEdit->setText(QString::number(curTree->getSeed()));
@@ -413,4 +423,10 @@ void FractalTree::pushedAddColorButton() {
     updateStyleSheet();
     clickedLeafColor(leafColors.size() - 1);
     changedTree = true;
+}
+
+void FractalTree::resizeEvent(QResizeEvent* event)
+{
+   QMainWindow::resizeEvent(event);
+   drawTree();
 }

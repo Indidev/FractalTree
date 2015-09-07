@@ -15,6 +15,8 @@
 #include <QMenu>
 #include <QCursor>
 #include <QErrorMessage>
+#include <QPainter>
+#include <QPainterPath>
 
 #include "FractalTreeImage.h"
 #include "SpinBox.h"
@@ -95,6 +97,8 @@ protected:
     void deleteLeafColor(int index);
     bool checkHashList(QStringList list);
     QColor getColorFromHash(QString hash);
+protected slots:
+    void resizeEvent(QResizeEvent *event);
 };
 
 #endif // FRACTALTREE_H

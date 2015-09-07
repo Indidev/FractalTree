@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>958</width>
+    <width>928</width>
     <height>659</height>
    </rect>
   </property>
@@ -37,14 +37,14 @@
           <widget class="QLabel" name="preview">
            <property name="minimumSize">
             <size>
-             <width>600</width>
-             <height>500</height>
+             <width>10</width>
+             <height>10</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>600</width>
-             <height>500</height>
+             <width>16777215</width>
+             <height>16777215</height>
             </size>
            </property>
            <property name="text">
@@ -57,6 +57,12 @@
       </item>
       <item>
        <widget class="QGroupBox" name="groupBox">
+        <property name="maximumSize">
+         <size>
+          <width>350</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="title">
          <string>Options:</string>
         </property>
