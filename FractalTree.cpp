@@ -40,12 +40,6 @@ FractalTree::FractalTree(QWidget *parent) :
     depthBox->setValue(10);
     ui->optionsForm->setWidget(5, QFormLayout::FieldRole, depthBox);
 
-    rootBox = new SpinBox;
-    rootBox->setMinimum(1);
-    rootBox->setMaximum(10000);
-    rootBox->setValue(10);
-    ui->optionsForm->setWidget(6, QFormLayout::FieldRole, rootBox);
-
     colorDialog.setOption(QColorDialog::ShowAlphaChannel);
     //colorDialog.setParent(this);
 
@@ -57,9 +51,11 @@ FractalTree::FractalTree(QWidget *parent) :
     connect(heightBox, SIGNAL(newValue()), this, SLOT(changedValue()));
     connect(branchesBox, SIGNAL(newValue()), this, SLOT(changedValue()));
     connect(depthBox, SIGNAL(newValue()), this, SLOT(changedValue()));
-    connect(rootBox, SIGNAL(newValue()), this, SLOT(changedValue()));
 
+    connect(ui->rootWidth, SIGNAL(valueChanged(int)), this, SLOT(changedValue()));
+    connect(ui->branchStretch, SIGNAL(valueChanged(int)), this, SLOT(changedValue()));
     connect(ui->leafSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(changedValue()));
+    connect(ui->basSize, SIGNAL(valueChanged(int)), this, SLOT(changedValue()));
 
     //connect(ui->leafColor, SIGNAL(clicked()), this, SLOT(clickedLeafColor()));
     connect(ui->treeColor, SIGNAL(clicked()), this, SLOT(clickedTreeColor()));
@@ -93,15 +89,24 @@ void FractalTree::render() {
 
     if (seed.startsWith("#")) {
         QStringList seedParts = seed.remove(0, 1).split(":");
+
+        if (!seedParts.empty() && seedParts[0] != "v2") {
+            seedParts.insert(7, "100");
+            seedParts.insert(7, "100");
+        } else {
+            seedParts.pop_front();
+        }
         if (checkHashList(seedParts)) {
             widthBox->setValue(seedParts[1].toInt());
             heightBox->setValue(seedParts[2].toInt());
             branchesBox->setValue(seedParts[3].toInt());
             depthBox->setValue(seedParts[4].toInt());
-            rootBox->setValue(seedParts[5].toInt());
+            ui->rootWidth->setValue(seedParts[5].toInt());
             ui->leafSizeSlider->setValue(seedParts[6].toInt());
+            ui->basSize->setValue(seedParts[7].toInt());
+            ui->branchStretch->setValue(seedParts[8].toInt());
 
-            treeColor = getColorFromHash(seedParts[7]);
+            treeColor = getColorFromHash(seedParts[9]);
 
             ui->leafColorLayout->removeWidget(addColorButton);
             addColorButton->deleteLater();
@@ -113,7 +118,7 @@ void FractalTree::render() {
             }
             leafColorButtons.clear();
 
-            for (int i = 8; i < seedParts.size(); i++) {
+            for (int i = 10; i < seedParts.size(); i++) {
                 addLeafColor(getColorFromHash(seedParts[i]));
             }
             addAddColorButton();
@@ -124,7 +129,10 @@ void FractalTree::render() {
 
             curTree = new FractalTreeImage(widthBox->value(), heightBox->value(),
                                            branchesBox->value(), depthBox->value(),
-                                           rootBox->value(), (float) ui->leafSizeSlider->value() / 100.f,
+                                           ui->rootWidth->value(),
+                                           (float) ui->basSize->value() / 100.f,
+                                           (float) ui->branchStretch->value() / 100.f,
+                                           (float) ui->leafSizeSlider->value() / 100.f,
                                            (unsigned int) seedParts[0].toLong(),
                                            treeColor, leafColors);
             drawTree();
@@ -137,7 +145,10 @@ void FractalTree::render() {
         delete curTree;
         curTree = new FractalTreeImage(widthBox->value(), heightBox->value(),
                                        branchesBox->value(), depthBox->value(),
-                                       rootBox->value(), (float) ui->leafSizeSlider->value() / 100.f,
+                                       ui->rootWidth->value(),
+                                       (float) ui->basSize->value() / 100.f,
+                                       (float) ui->branchStretch->value() / 100.f,
+                                       (float) ui->leafSizeSlider->value() / 100.f,
                                        (unsigned int) ui->seedEdit->text().toLong(),
                                        treeColor, leafColors);
         drawTree();
@@ -150,7 +161,9 @@ bool FractalTree::checkHashList(QStringList list) {
         cout << "Hash is to short! " << endl;
         return false;
     }
-    for (int i = 0; i < 7; i++) {
+
+    //configuration values
+    for (int i = 0; i < 9; i++) {
         bool ok;
         list[i].toLongLong(&ok);
         if (!ok) {
@@ -159,7 +172,8 @@ bool FractalTree::checkHashList(QStringList list) {
         }
     }
 
-    for (int i = 7; i < list.size(); i++) {
+    //color codes
+    for (int i = 9; i < list.size(); i++) {
         bool ok;
         ("0x" + list[i]).toLongLong(&ok, 16);
         if (!ok) {
@@ -194,13 +208,15 @@ void FractalTree::drawTree() {
     ui->curSeedEdit->setText(QString::number(curTree->getSeed()));
 
     //update hash
-    QString hash = "#" + QString::number(curTree->getSeed());
+    QString hash = "#v2:" + QString::number(curTree->getSeed());
     hash += ":" + QString::number(widthBox->value());
     hash += ":" + QString::number(heightBox->value());
     hash += ":" + QString::number(branchesBox->value());
     hash += ":" + QString::number(depthBox->value());
-    hash += ":" + QString::number(rootBox->value());
+    hash += ":" + QString::number(ui->rootWidth->value());
     hash += ":" + QString::number(ui->leafSizeSlider->value());
+    hash += ":" + QString::number(ui->basSize->value());
+    hash += ":" + QString::number(ui->branchStretch->value());
     hash += ":" + treeColor.name().remove(0, 1) + QString::number(treeColor.alpha(), 16);
 
     for (QColor color : leafColors) {
@@ -220,7 +236,10 @@ void FractalTree::updateTree() {
         delete curTree;
         curTree = new FractalTreeImage(widthBox->value(), heightBox->value(),
                                        branchesBox->value(), depthBox->value(),
-                                       rootBox->value(), (float) ui->leafSizeSlider->value() / 100.f,
+                                       ui->rootWidth->value(),
+                                       (float) ui->basSize->value() / 100.f,
+                                       (float) ui->branchStretch->value() / 100.f,
+                                       (float) ui->leafSizeSlider->value() / 100.f,
                                        (unsigned int) ui->curSeedEdit->text().toLong(),
                                        treeColor, leafColors);
 

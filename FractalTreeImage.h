@@ -18,10 +18,10 @@ using namespace std;
 class FractalTreeImage : public QImage
 {
 public:
-    explicit FractalTreeImage(int width = 100, int height = 100, int numBranches = 2, int recursionDepth = 1, int rootWidth = 4,
+    explicit FractalTreeImage(int width = 100, int height = 100, int numBranches = 2, int recursionDepth = 1, int rootWidth = 4, float baseSize = 1.0, float branchStretch = 1.0,
                               float leafSize = 0.1, unsigned int seed = 0, QColor treeColor = Qt::black, QColor leafColor = QColor(0, 198, 0, 200));
 
-    explicit FractalTreeImage(int width = 100, int height = 100, int numBranches = 2, int recursionDepth = 1, int rootWidth = 4,
+    explicit FractalTreeImage(int width = 100, int height = 100, int numBranches = 2, int recursionDepth = 1, int rootWidth = 4, float baseSize = 1.0, float branchStretch = 1.0,
                               float leafSize = 0.1, unsigned int seed = 0, QColor treeColor = Qt::black, QList<QColor> leafColors = QList<QColor>());
     unsigned int getSeed();
 
@@ -35,7 +35,9 @@ protected:
     int maxDepth;
     int rootWidth;
     unsigned int seed;
+    float baseSize;
     float leafSize;
+    float branchStretch;
     QList<QColor> leafColors;
     QColor treeColor;
 

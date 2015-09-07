@@ -2,7 +2,7 @@
 
 #define PI 3.14159265359
 
-FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int recursionDepth, int rootWidth, float leafSize, unsigned int seed, QColor treeColor, QColor leafColor) :
+FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int recursionDepth, int rootWidth, float baseSize, float rootStretch, float leafSize, unsigned int seed, QColor treeColor, QColor leafColor) :
     QImage(width, height, QImage::Format_ARGB32)
 {
     if (seed == 0)
@@ -17,10 +17,12 @@ FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int r
     this->treeColor = treeColor;
     this->leafColors.append(leafColor);
     this->leafSize = leafSize;
+    this->branchStretch = rootStretch;
+    this->baseSize = baseSize;
     drawTree();
 }
 
-FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int recursionDepth, int rootWidth, float leafSize, unsigned int seed, QColor treeColor, QList<QColor> leafColors) :
+FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int recursionDepth, int rootWidth, float baseSize, float rootStretch, float leafSize, unsigned int seed, QColor treeColor, QList<QColor> leafColors) :
     QImage(width, height, QImage::Format_ARGB32)
 {
     if (seed == 0)
@@ -35,6 +37,8 @@ FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int r
     this->treeColor = treeColor;
     this->leafColors.append(leafColors);
     this->leafSize = leafSize;
+    this->branchStretch = rootStretch;
+    this->baseSize = baseSize;
 
     drawTree();
 }
@@ -48,7 +52,7 @@ void FractalTreeImage::drawTree()
     painter.setRenderHint(QPainter::HighQualityAntialiasing);
     int width = this->width();
     int height = this->height();
-    double baseLength = min(width, height) / 3.5;
+    double baseLength = baseSize * min(width, height) / 3.5;
     double delta = 180.0 / (2 * branches);
     QList<Endpoint> endpoints;
 
@@ -72,7 +76,7 @@ void FractalTreeImage::drawTree()
     for (double n = 1; n < maxDepth; n++) {
         double lineWidth = rootWidth - rootWidth * (n/maxDepth);
         lineWidth = max(lineWidth, 1.0);
-        double length = baseLength / (n + 1.0);
+        double length = baseLength / (branchStretch * n + 1.0);
 
         QList<Endpoint> newEndpoints;
 
