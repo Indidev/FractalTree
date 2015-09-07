@@ -1,7 +1,7 @@
 # FractalTree
 Create and save your own fractal tree:
 
-![FractalTree](http://indidude.de/stuff/fractalTree.png)
+![FractalTree](http://indidude.de/stuff/fractalTree3.0.png)
 ![FractalTree](http://indidude.de/stuff/tree_small.gif)
 
 ## Compilation ##
