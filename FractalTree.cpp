@@ -15,6 +15,18 @@ FractalTree::FractalTree(QWidget *parent) :
 
     ui->seedEdit->setValidator(new SeedValidator);
 
+    curSeedEdit = new ReadOnlyLineEdit;
+    curSeedEdit->setMinimumWidth(100);
+    curSeedEdit->setMaximumWidth(100);
+    QFont font = curSeedEdit->font();
+    font.setPointSize(9);
+    curSeedEdit->setFont(font);
+    ui->curSeedLayout->addWidget(curSeedEdit);
+
+    curHashEdit = new ReadOnlyLineEdit;
+    curHashEdit->setFont(font);
+    ui->curHashLayout->addWidget(curHashEdit);
+
     curTree = 0;
     widthBox = new SpinBox;
     widthBox->setMinimum(10);
@@ -205,7 +217,7 @@ void FractalTree::drawTree() {
     ui->preview->setPixmap(QPixmap::fromImage(resized.copy(rect)));
 
     //update seed
-    ui->curSeedEdit->setText(QString::number(curTree->getSeed()));
+    curSeedEdit->setText(QString::number(curTree->getSeed()));
 
     //update hash
     QString hash = "#v2:" + QString::number(curTree->getSeed());
@@ -223,7 +235,7 @@ void FractalTree::drawTree() {
         hash += ":" + color.name().remove(0, 1) + QString::number(color.alpha(), 16);
     }
 
-    ui->curHashEdit->setText(hash);
+    curHashEdit->setText(hash);
 }
 
 void FractalTree::changedValue() {
@@ -240,7 +252,7 @@ void FractalTree::updateTree() {
                                        (float) ui->basSize->value() / 100.f,
                                        (float) ui->branchStretch->value() / 100.f,
                                        (float) ui->leafSizeSlider->value() / 100.f,
-                                       (unsigned int) ui->curSeedEdit->text().toLong(),
+                                       (unsigned int) curSeedEdit->text().toLong(),
                                        treeColor, leafColors);
 
         drawTree();

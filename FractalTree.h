@@ -19,6 +19,7 @@
 #include "FractalTreeImage.h"
 #include "SpinBox.h"
 #include "ExtendedButton.h"
+#include "ReadOnlyLineEdit.h"
 
 #include <iostream>
 
@@ -70,6 +71,8 @@ protected:
     QList<QPushButton *> leafColorButtons;
     QSignalMapper leafColorLCMapper;
     QSignalMapper leafColorRCMapper;
+    ReadOnlyLineEdit *curSeedEdit;
+    ReadOnlyLineEdit *curHashEdit;
 
     //private class
     class SeedValidator : public QValidator {

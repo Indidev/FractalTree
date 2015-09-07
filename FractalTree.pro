@@ -17,12 +17,14 @@ SOURCES += main.cpp\
         FractalTree.cpp \
     FractalTreeImage.cpp \
     SpinBox.cpp \
-    ExtendedButton.cpp
+    ExtendedButton.cpp \
+    ReadOnlyLineEdit.cpp
 
 HEADERS  += FractalTree.h \
     FractalTreeImage.h \
     SpinBox.h \
-    ExtendedButton.h
+    ExtendedButton.h \
+    ReadOnlyLineEdit.h
 
 FORMS    += FractalTree.ui
 
