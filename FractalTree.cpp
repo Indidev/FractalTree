@@ -284,15 +284,16 @@ void FractalTree::save() {
         QString filename = fd.selectedFiles().first();
         QString extension = filename.split(".").last();
 
-        if (!extension.toLower().contains("png|ico|gif|jpg|bmp|xpm")) {
+        if (!endsWith(extension, "png|ico|gif|jpg|bmp|xpm")) {
             extension = fd.selectedNameFilter().split(QRegExp("\\("),QString::SkipEmptyParts).first();
+            extension = extension.trimmed();
             filename += "." + extension;
         }
 
-        cout << extension.toStdString() << endl;
-        if (extension.toLower().contains(QRegExp("png|ico|gif")))
+        //cout << extension.toStdString() << endl;
+        if (endsWith(extension, "png|ico|gif"))
             curTree->save(filename);
-        else if (filename.toLower().contains(QRegExp("jpg|bmp|xpm"))) {
+        else if (endsWith(filename, "jpg|bmp|xpm")) {
             QImage withBg(curTree->width(), curTree->height(), QImage::Format_RGB32);
             withBg.fill(Qt::white);
             QPainter painter(&withBg);
@@ -303,6 +304,14 @@ void FractalTree::save() {
             cerr << "Extenstion " << extension.toStdString() << " not supported." << endl;
         }
     }
+}
+
+bool FractalTree::endsWith(QString text, QString needls) {
+    for (QString needle : needls.split("|")) {
+        if (text.endsWith(needle, Qt::CaseInsensitive))
+            return true;
+    }
+    return false;
 }
 
 void FractalTree::changedFilter(QObject *dialog) {

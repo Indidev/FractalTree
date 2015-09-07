@@ -97,6 +97,9 @@ protected:
     void deleteLeafColor(int index);
     bool checkHashList(QStringList list);
     QColor getColorFromHash(QString hash);
+
+    //needls seperated with |
+    bool endsWith(QString text, QString needls);
 protected slots:
     void resizeEvent(QResizeEvent *event);
 };
