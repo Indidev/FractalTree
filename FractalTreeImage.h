@@ -18,11 +18,13 @@ using namespace std;
 class FractalTreeImage : public QImage
 {
 public:
-    explicit FractalTreeImage(int width = 100, int height = 100, int numBranches = 2, int recursionDepth = 1, int rootWidth = 4, float baseSize = 1.0, float branchStretch = 1.0,
-                              float leafSize = 0.1, unsigned int seed = 0, QColor treeColor = Qt::black, QColor leafColor = QColor(0, 198, 0, 200));
+    explicit FractalTreeImage(int width = 100, int height = 100, int numBranches = 2, int recursionDepth = 1, int rootWidth = 4,
+                              float baseSize = 1.0, float branchStretch = 1.0, float leafSize = 0.1, float lowerJitter = 1.0, float upperJitter = 1.0,
+                              unsigned int seed = 0, QColor treeColor = Qt::black, QColor leafColor = QColor(0, 198, 0, 200));
 
-    explicit FractalTreeImage(int width = 100, int height = 100, int numBranches = 2, int recursionDepth = 1, int rootWidth = 4, float baseSize = 1.0, float branchStretch = 1.0,
-                              float leafSize = 0.1, unsigned int seed = 0, QColor treeColor = Qt::black, QList<QColor> leafColors = QList<QColor>());
+    explicit FractalTreeImage(int width = 100, int height = 100, int numBranches = 2, int recursionDepth = 1, int rootWidth = 4,
+                              float baseSize = 1.0, float branchStretch = 1.0, float leafSize = 0.1, float lowerJitter = 1.0, float upperJitter = 1.0,
+                              unsigned int seed = 0, QColor treeColor = Qt::black, QList<QColor> leafColors = QList<QColor>());
     unsigned int getSeed();
 
 protected:
@@ -38,6 +40,8 @@ protected:
     float baseSize;
     float leafSize;
     float branchStretch;
+    float lowerJitter;
+    float upperJitter;
     QList<QColor> leafColors;
     QColor treeColor;
 

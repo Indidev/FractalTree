@@ -68,6 +68,8 @@ FractalTree::FractalTree(QWidget *parent) :
     connect(ui->branchStretch, SIGNAL(valueChanged(int)), this, SLOT(changedValue()));
     connect(ui->leafSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(changedValue()));
     connect(ui->basSize, SIGNAL(valueChanged(int)), this, SLOT(changedValue()));
+    connect(ui->lowerBoundJitter, SIGNAL(valueChanged(int)), this, SLOT(changedValue()));
+    connect(ui->upperBoundJitter, SIGNAL(valueChanged(int)), this, SLOT(changedValue()));
 
     //connect(ui->leafColor, SIGNAL(clicked()), this, SLOT(clickedLeafColor()));
     connect(ui->treeColor, SIGNAL(clicked()), this, SLOT(clickedTreeColor()));
@@ -101,13 +103,25 @@ void FractalTree::render() {
 
     if (seed.startsWith("#")) {
         QStringList seedParts = seed.remove(0, 1).split(":");
+        if (seedParts.isEmpty())
+            return;
 
-        if (!seedParts.empty() && seedParts[0] != "v2") {
-            seedParts.insert(7, "100");
-            seedParts.insert(7, "100");
-        } else {
-            seedParts.pop_front();
+        if (!seedParts[0].startsWith("v")) {
+            seedParts.push_front("v1");
         }
+        int version = seedParts[0].remove(QRegExp("\\D*")).toInt();
+
+        seedParts.pop_front(); //remove version number
+
+        switch (version) {
+            case 1:
+                seedParts.insert(7, "100"); //root width and branch stretch
+                seedParts.insert(7, "100");
+            case 2:
+                seedParts.insert(9, "100"); //upper and lower angle jitter
+                seedParts.insert(9, "100");
+        }
+
         if (checkHashList(seedParts)) {
             widthBox->setValue(seedParts[1].toInt());
             heightBox->setValue(seedParts[2].toInt());
@@ -117,8 +131,10 @@ void FractalTree::render() {
             ui->leafSizeSlider->setValue(seedParts[6].toInt());
             ui->basSize->setValue(seedParts[7].toInt());
             ui->branchStretch->setValue(seedParts[8].toInt());
+            ui->lowerBoundJitter->setValue(seedParts[9].toInt());
+            ui->upperBoundJitter->setValue(seedParts[10].toInt());
 
-            treeColor = getColorFromHash(seedParts[9]);
+            treeColor = getColorFromHash(seedParts[11]);
 
             ui->leafColorLayout->removeWidget(addColorButton);
             addColorButton->deleteLater();
@@ -130,7 +146,7 @@ void FractalTree::render() {
             }
             leafColorButtons.clear();
 
-            for (int i = 10; i < seedParts.size(); i++) {
+            for (int i = 12; i < seedParts.size(); i++) {
                 addLeafColor(getColorFromHash(seedParts[i]));
             }
             addAddColorButton();
@@ -145,6 +161,8 @@ void FractalTree::render() {
                                            (float) ui->basSize->value() / 100.f,
                                            (float) ui->branchStretch->value() / 100.f,
                                            (float) ui->leafSizeSlider->value() / 100.f,
+                                           (float) ui->lowerBoundJitter->value() / 100.f,
+                                           (float) ui->upperBoundJitter->value() / 100.f,
                                            (unsigned int) seedParts[0].toLong(),
                                            treeColor, leafColors);
             drawTree();
@@ -161,6 +179,8 @@ void FractalTree::render() {
                                        (float) ui->basSize->value() / 100.f,
                                        (float) ui->branchStretch->value() / 100.f,
                                        (float) ui->leafSizeSlider->value() / 100.f,
+                                       (float) ui->lowerBoundJitter->value() / 100.f,
+                                       (float) ui->upperBoundJitter->value() / 100.f,
                                        (unsigned int) ui->seedEdit->text().toLong(),
                                        treeColor, leafColors);
         drawTree();
@@ -175,7 +195,7 @@ bool FractalTree::checkHashList(QStringList list) {
     }
 
     //configuration values
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < 11; i++) {
         bool ok;
         list[i].toLongLong(&ok);
         if (!ok) {
@@ -185,7 +205,7 @@ bool FractalTree::checkHashList(QStringList list) {
     }
 
     //color codes
-    for (int i = 9; i < list.size(); i++) {
+    for (int i = 11; i < list.size(); i++) {
         bool ok;
         ("0x" + list[i]).toLongLong(&ok, 16);
         if (!ok) {
@@ -230,7 +250,7 @@ void FractalTree::drawTree  () {
     curSeedEdit->setText(QString::number(curTree->getSeed()));
 
     //update hash
-    QString hash = "#v2:" + QString::number(curTree->getSeed());
+    QString hash = "#v3:" + QString::number(curTree->getSeed());
     hash += ":" + QString::number(widthBox->value());
     hash += ":" + QString::number(heightBox->value());
     hash += ":" + QString::number(branchesBox->value());
@@ -239,6 +259,8 @@ void FractalTree::drawTree  () {
     hash += ":" + QString::number(ui->leafSizeSlider->value());
     hash += ":" + QString::number(ui->basSize->value());
     hash += ":" + QString::number(ui->branchStretch->value());
+    hash += ":" + QString::number(ui->lowerBoundJitter->value());
+    hash += ":" + QString::number(ui->upperBoundJitter->value());
     hash += ":" + treeColor.name().remove(0, 1) + QString::number(treeColor.alpha(), 16);
 
     for (QColor color : leafColors) {
@@ -262,6 +284,8 @@ void FractalTree::updateTree() {
                                        (float) ui->basSize->value() / 100.f,
                                        (float) ui->branchStretch->value() / 100.f,
                                        (float) ui->leafSizeSlider->value() / 100.f,
+                                       (float) ui->lowerBoundJitter->value() / 100.f,
+                                       (float) ui->upperBoundJitter->value() / 100.f,
                                        (unsigned int) curSeedEdit->text().toLong(),
                                        treeColor, leafColors);
 

@@ -2,7 +2,7 @@
 
 #define PI 3.14159265359
 
-FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int recursionDepth, int rootWidth, float baseSize, float rootStretch, float leafSize, unsigned int seed, QColor treeColor, QColor leafColor) :
+FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int recursionDepth, int rootWidth, float baseSize, float rootStretch, float leafSize, float lowerJitter, float upperJitter, unsigned int seed, QColor treeColor, QColor leafColor) :
     QImage(width, height, QImage::Format_ARGB32)
 {
     if (seed == 0)
@@ -19,10 +19,12 @@ FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int r
     this->leafSize = leafSize;
     this->branchStretch = rootStretch;
     this->baseSize = baseSize;
+    this->upperJitter = upperJitter;
+    this->lowerJitter = lowerJitter;
     drawTree();
 }
 
-FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int recursionDepth, int rootWidth, float baseSize, float rootStretch, float leafSize, unsigned int seed, QColor treeColor, QList<QColor> leafColors) :
+FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int recursionDepth, int rootWidth, float baseSize, float rootStretch, float leafSize, float lowerJitter, float upperJitter, unsigned int seed, QColor treeColor, QList<QColor> leafColors) :
     QImage(width, height, QImage::Format_ARGB32)
 {
     if (seed == 0)
@@ -39,6 +41,8 @@ FractalTreeImage::FractalTreeImage(int width, int height, int numBranches, int r
     this->leafSize = leafSize;
     this->branchStretch = rootStretch;
     this->baseSize = baseSize;
+    this->upperJitter = upperJitter;
+    this->lowerJitter = lowerJitter;
 
     drawTree();
 }
@@ -86,9 +90,12 @@ void FractalTreeImage::drawTree()
 
             for (int i = 0; i < branches; i++) {
 
-                double gitter = drand() * delta - delta / 2.0; //use rand between +- delta/4
+                double offset = delta / 2 * lowerJitter;
+                double range = delta / 2 * upperJitter; + offset;
+
+                double jitter = drand() * range - offset; //calculate jitter
                 QPoint start = endpoint.point;
-                QVector2D direction = rotate(endpoint.vec, angle + gitter);
+                QVector2D direction = rotate(endpoint.vec, angle + jitter);
                 QPoint end = add(start, length * direction);
                 drawLine(start, end, painter, lineWidth);
 
