@@ -17,6 +17,7 @@
 #include <QErrorMessage>
 #include <QPainter>
 #include <QPainterPath>
+#include <QMap>
 
 #include "FractalTreeImage.h"
 #include "SpinBox.h"
@@ -43,13 +44,13 @@ public slots:
     void render();
     void save();
     void updateTree();
-    void clickedLeafColor(int index);
+    void clickedLeafColor(QWidget *widget);
     void clickedTreeColor();
 
     void changedValue();
     void updateColor();
     void pushedAddColorButton();
-    void rightClickedColor(int index);
+    void rightClickedColor(QWidget *widget);
     void changedFilter(QObject *dialog);
 signals:
 protected:
@@ -69,7 +70,7 @@ protected:
     QColorDialog colorDialog;
 
     QColor treeColor;
-    QList<QColor> leafColors;
+    QMap<QWidget*, QColor> leafColors;
     QList<QPushButton *> leafColorButtons;
     QSignalMapper leafColorLCMapper;
     QSignalMapper leafColorRCMapper;
@@ -94,7 +95,7 @@ protected:
     void changeColor(QColor &curColor);
     void addLeafColor(QColor color = QColor(0, 198, 0, 200));
     void addAddColorButton();
-    void deleteLeafColor(int index);
+    void deleteLeafColor(QWidget *widget);
     bool checkHashList(QStringList list);
     QColor getColorFromHash(QString hash);
 

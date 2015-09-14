@@ -76,8 +76,8 @@ FractalTree::FractalTree(QWidget *parent) :
 
     connect(timer, SIGNAL(timeout()), this, SLOT(updateTree()));
 
-    connect(&leafColorLCMapper, SIGNAL(mapped(int)), this, SLOT(clickedLeafColor(int)));
-    connect(&leafColorRCMapper, SIGNAL(mapped(int)), this, SLOT(rightClickedColor(int)));
+    connect(&leafColorLCMapper, SIGNAL(mapped(QWidget*)), this, SLOT(clickedLeafColor(QWidget*)));
+    connect(&leafColorRCMapper, SIGNAL(mapped(QWidget*)), this, SLOT(rightClickedColor(QWidget*)));
 
     treeColor = Qt::black;
     addLeafColor();
@@ -164,7 +164,7 @@ void FractalTree::render() {
                                            (float) ui->lowerBoundJitter->value() / 100.f,
                                            (float) ui->upperBoundJitter->value() / 100.f,
                                            (unsigned int) seedParts[0].toLong(),
-                                           treeColor, leafColors);
+                                           treeColor, leafColors.values());
             drawTree();
         } else {
             QErrorMessage em;
@@ -182,7 +182,7 @@ void FractalTree::render() {
                                        (float) ui->lowerBoundJitter->value() / 100.f,
                                        (float) ui->upperBoundJitter->value() / 100.f,
                                        (unsigned int) ui->seedEdit->text().toLong(),
-                                       treeColor, leafColors);
+                                       treeColor, leafColors.values());
         drawTree();
     }
 }
@@ -287,7 +287,7 @@ void FractalTree::updateTree() {
                                        (float) ui->lowerBoundJitter->value() / 100.f,
                                        (float) ui->upperBoundJitter->value() / 100.f,
                                        (unsigned int) curSeedEdit->text().toLong(),
-                                       treeColor, leafColors);
+                                       treeColor, leafColors.values());
 
         drawTree();
     }
@@ -344,8 +344,8 @@ void FractalTree::changedFilter(QObject *dialog) {
     cout << "default suffix: " << d->defaultSuffix().toStdString() << endl;
 }
 
-void FractalTree::clickedLeafColor(int index) {
-    changeColor(leafColors[index]);
+void FractalTree::clickedLeafColor(QWidget* widget) {
+    changeColor(leafColors[widget]);
     updateStyleSheet();
     changedTree = true;
 }
@@ -380,7 +380,7 @@ void FractalTree::changeColor(QColor &curColor) {
 
 void FractalTree::updateStyleSheet() {
     for (int i = 0; i < leafColorButtons.size(); i++)
-        leafColorButtons[i]->setStyleSheet("border: none;background-color: " + colorToRGBA(leafColors[i]) + ";");
+        leafColorButtons[i]->setStyleSheet("border: none;background-color: " + colorToRGBA(leafColors[leafColorButtons[i]]) + ";");
     ui->treeColor->setStyleSheet("border: none;background-color: " + colorToRGBA(treeColor) + ";");
 }
 
@@ -405,14 +405,14 @@ void FractalTree::addLeafColor(QColor color) {
     button->setMinimumWidth(25);
     button->setMaximumWidth(25);
 
-    leafColorLCMapper.setMapping(button, leafColors.size());
+    leafColorLCMapper.setMapping(button, button);
     connect(button, SIGNAL(leftClicked()), &leafColorLCMapper, SLOT(map()));
 
-    leafColorRCMapper.setMapping(button, leafColors.size());
+    leafColorRCMapper.setMapping(button, button);
     connect(button, SIGNAL(rightClicked()), &leafColorRCMapper, SLOT(map()));
 
     leafColorButtons.push_back(button);
-    leafColors.push_back(color);
+    leafColors[button] = color;
 
     ui->leafColorLayout->addWidget(button);
 }
@@ -430,19 +430,20 @@ void FractalTree::addAddColorButton() {
     connect(addColorButton, SIGNAL(clicked()), this, SLOT(pushedAddColorButton()));
 }
 
-void FractalTree::rightClickedColor(int index) {
+void FractalTree::rightClickedColor(QWidget* widget) {
     QMenu menu;
 
     menu.addAction("delete");
 
     QAction* action = menu.exec(QCursor::pos());
     if (action && action->toolTip() == "delete") {
-        deleteLeafColor(index);
+        deleteLeafColor(widget);
     }
 }
 
-void FractalTree::deleteLeafColor(int index) {
-    leafColors.removeAt(index);
+void FractalTree::deleteLeafColor(QWidget* widget) {
+    leafColors.remove(widget);
+    int index = leafColorButtons.indexOf((QPushButton*) widget);
     leafColorButtons[index]->deleteLater();
     leafColorButtons.removeAt(index);
     changedTree = true;
@@ -454,7 +455,7 @@ void FractalTree::pushedAddColorButton() {
     addLeafColor();
     addAddColorButton();
     updateStyleSheet();
-    clickedLeafColor(leafColors.size() - 1);
+    clickedLeafColor(leafColorButtons.last());
     changedTree = true;
 }
 
